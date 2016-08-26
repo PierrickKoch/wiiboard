@@ -5,33 +5,6 @@ usage: wiiboard.py [address] 2> wiiboard.log > wiiboard.txt
 tip: use `hcitool scan` to get a list of devices addresses
 
 You only need to install `python-bluez` or `python-bluetooth` package.
-
-Original version from Nedim Jackman in 2008 [based? on "wiibalancepc"]:
-https://code.google.com/archive/p/wiiboard-simple/
-http://trackingbalance.blogspot.fr/2008/08/small-milestone.html
-
-Note to developers:
-wiiboard_simple_src_1.0.0.zip/WiiboardSimple/src/edu/unsw/cse/wiiboard/WiiBoard.java
-The Wii Balance Board is very similar in most hardware properties of the wiimote.
-The force sensing component is treated as an extension to a wiimote.
-Most of the implementation details are sourced from the wiibrew project.
-http://wiibrew.org/wiki/Wii_Balance_Board
-http://web.archive.org/http://www.wiili.org/index.php/Wiimote
-
-Changes from Nedim's version:
-* fix Wiiboard.calcMass where raw == self.calibration[1][pos] would return 0.0
-* add INPUT_STATUS code to get battery level and light status
-* store constants in byte to avoid unnecessary conversion
-* skip device discovery when passing an address in argument
-* add logging (to stderr)
-
-Since then few other projects using Nedim's code:
-https://www.stavros.io/posts/your-weight-online/
-https://github.com/initialstate/beerfridge
-
-Other wiimote interface / driver:
-https://github.com/abstrakraft/cwiid
-https://github.com/dvdhrm/xwiimote
 """
 import sys
 import json
