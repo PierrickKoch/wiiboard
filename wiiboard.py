@@ -7,7 +7,6 @@ tip: use `hcitool scan` to get a list of devices addresses
 You only need to install `python-bluez` or `python-bluetooth` package.
 """
 import sys
-import json
 import time
 import logging
 import bluetooth
