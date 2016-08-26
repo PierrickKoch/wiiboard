@@ -1,0 +1,8 @@
+# folders
+tmp/
+build/
+# python
+*.pyc
+# other files
+*~
+*.bak
