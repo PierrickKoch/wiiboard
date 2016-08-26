@@ -5,6 +5,9 @@ usage: wiiboard.py [address] 2> wiiboard.log > wiiboard.txt
 tip: use `hcitool scan` to get a list of devices addresses
 
 You only need to install `python-bluez` or `python-bluetooth` package.
+
+LICENSE LGPL <http://www.gnu.org/licenses/lgpl.html>
+        (c) Nedim Jackman 2008 (c) Pierrick Koch 2016
 """
 import sys
 import time
