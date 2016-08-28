@@ -76,7 +76,7 @@ def status():
     send(COMMAND_REQUEST_STATUS, '\x00')
 
 calibration = [[10000]*4]*3
-logger.debug("Sending mass calibration requested")
+logger.debug("Sending mass calibration request")
 send(COMMAND_READ_REGISTER, "\x04\xA4\x00\x24\x00\x18")
 calibration_requested = True
 logger.info("Wait for calibration")
@@ -160,7 +160,7 @@ while receivesocket:
         if len(samples) > N_SAMPLES:
             print("%.3f %.3f"%(time.time(), sum(samples) / len(samples)))
             samples = []
-            status()
+            status() # Stop the board from publishing mass data
             nloop += 1
             if nloop > N_LOOP:
                 break
