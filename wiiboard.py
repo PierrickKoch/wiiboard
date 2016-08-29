@@ -11,7 +11,6 @@ LICENSE LGPL <http://www.gnu.org/licenses/lgpl.html>
 """
 import time
 import logging
-import threading
 import collections
 import bluetooth
 
@@ -166,17 +165,6 @@ class Wiiboard:
         self.close()
         return not exc_type # re-raise exception if any
 
-class WiiboardThreaded(Wiiboard):
-    def __init__(self, address=None):
-        self.thread = threading.Thread(target=self.loop)
-        Wiiboard.__init__(self, address)
-    def connect(self, address):
-        Wiiboard.connect(self, address)
-        self.thread.start()
-    def spin(self):
-        while self.thread.is_alive():
-            self.thread.join(1)
-
 class WiiboardSampling(Wiiboard):
     def __init__(self, address=None, nsamples=N_SAMPLES):
         Wiiboard.__init__(self, address)
@@ -191,9 +179,7 @@ class WiiboardSampling(Wiiboard):
 class WiiboardPrint(WiiboardSampling):
     def on_sample(self):
         if len(self.samples) == N_SAMPLES:
-            # Copy deque content by using list() copy constructor
-            #   to avoid: RuntimeError: deque mutated during iteration
-            samples = [sum(sample.values()) for sample in list(self.samples)]
+            samples = [sum(sample.values()) for sample in self.samples]
             print("%.3f %.3f"%(time.time(), sum(samples) / len(samples)))
             self.samples.clear()
             self.status() # Stop the board from publishing mass data

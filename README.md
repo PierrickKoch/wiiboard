@@ -79,3 +79,23 @@ try: # disconnect paired device with BlueZ API v5+
 except Exception as err:
     logger.warning("dbus failed: %s", str(err))
 ```
+
+Threading
+---------
+
+*for threaded version use something like*
+
+```python
+import threading
+
+class WiiboardThreaded(Wiiboard):
+    def __init__(self, address=None):
+        self.thread = threading.Thread(target=self.loop)
+        Wiiboard.__init__(self, address)
+    def connect(self, address):
+        Wiiboard.connect(self, address)
+        self.thread.start()
+    def spin(self):
+        while self.thread.is_alive():
+            self.thread.join(1)
+```
