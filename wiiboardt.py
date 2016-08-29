@@ -59,6 +59,8 @@ class Wiiboard:
         self.samples = collections.deque([], nsamples)
         self.light_state = False
         self.button_down = False
+        self.battery = 0.0
+        self.running = True
         self.thread = threading.Thread(target=self.loop)
         if address is not None:
             self.connect(address)
@@ -66,7 +68,6 @@ class Wiiboard:
         logger.info("Connecting to %s", address)
         self.controlsocket.connect((address, 0x11))
         self.receivesocket.connect((address, 0x13))
-        self.running = True
         self.thread.start()
         logger.debug("Sending mass calibration request")
         self.send(COMMAND_READ_REGISTER, "\x04\xA4\x00\x24\x00\x18")
@@ -153,6 +154,12 @@ class Wiiboard:
         if self.controlsocket: self.controlsocket.close()
     def __del__(self):
         self.close()
+    #### with statement ####
+    def __enter__(self):
+        return self
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+        return not exc_type # re-raise exception if any
 
 if __name__ == '__main__':
     import sys
