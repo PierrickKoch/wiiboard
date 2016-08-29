@@ -82,9 +82,9 @@ class Wiiboard:
     def reporting(self, mode=CONTINUOUS_REPORTING, extension=EXTENSION_8BYTES):
         self.send(COMMAND_REPORTING, mode, extension)
     def light(self, on_off=True):
-        self.send(COMMAND_LIGHT, '\x10' if on_off else '\x00')
+        self.send(COMMAND_LIGHT, b'\x10' if on_off else b'\x00')
     def status(self):
-        self.send(COMMAND_REQUEST_STATUS, '\x00')
+        self.send(COMMAND_REQUEST_STATUS, b'\x00')
     def calc_mass(self, raw, pos):
         # Calculates the Kilogram weight reading from raw data at position pos
         # calibration[0] is calibration values for 0kg
@@ -193,7 +193,7 @@ class WiiboardPrint(WiiboardSampling):
             if self.nloop > N_LOOP:
                 return self.close()
             self.light(0)
-            time.sleep(1)
+            time.sleep(T_SLEEP)
 
 if __name__ == '__main__':
     import sys
