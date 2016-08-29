@@ -32,7 +32,10 @@ BOTTOM_RIGHT            = 1
 TOP_LEFT                = 2
 BOTTOM_LEFT             = 3
 BLUETOOTH_NAME          = "Nintendo RVL-WBC-01"
+# WiiboardSampling Parameters
 N_SAMPLES               = 200
+N_LOOP                  = 10
+T_SLEEP                 = 2
 
 # initialize the logger
 logger = logging.getLogger(__name__)
@@ -177,12 +180,18 @@ class WiiboardSampling(Wiiboard):
 
 # client class where we can re-define callbacks
 class WiiboardPrint(WiiboardSampling):
+    def __init__(self, address=None, nsamples=N_SAMPLES):
+        WiiboardSampling.__init__(self, address, nsamples)
+        self.nloop = 0
     def on_sample(self):
         if len(self.samples) == N_SAMPLES:
             samples = [sum(sample.values()) for sample in self.samples]
             print("%.3f %.3f"%(time.time(), sum(samples) / len(samples)))
             self.samples.clear()
             self.status() # Stop the board from publishing mass data
+            self.nloop += 1
+            if self.nloop > N_LOOP:
+                return self.close()
             self.light(0)
             time.sleep(1)
 
