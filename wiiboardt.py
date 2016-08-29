@@ -51,24 +51,21 @@ def discover(duration=6, prefix=BLUETOOTH_NAME):
     return [address for address, name in devices if name.startswith(prefix)]
 
 class Wiiboard:
-    def __init__(self, address=None, nsamples=N_SAMPLES):
+    def __init__(self, address=None):
         self.controlsocket = bluetooth.BluetoothSocket(bluetooth.L2CAP)
         self.receivesocket = bluetooth.BluetoothSocket(bluetooth.L2CAP)
         self.calibration = [[10000]*4]*3
         self.calibration_requested = False
-        self.samples = collections.deque([], nsamples)
         self.light_state = False
         self.button_down = False
         self.battery = 0.0
         self.running = True
-        self.thread = threading.Thread(target=self.loop)
         if address is not None:
             self.connect(address)
     def connect(self, address):
         logger.info("Connecting to %s", address)
         self.controlsocket.connect((address, 0x11))
         self.receivesocket.connect((address, 0x13))
-        self.thread.start()
         logger.debug("Sending mass calibration request")
         self.send(COMMAND_READ_REGISTER, "\x04\xA4\x00\x24\x00\x18")
         self.calibration_requested = True
@@ -102,11 +99,11 @@ class Wiiboard:
     def check_button(self, state):
         if state == BUTTON_DOWN_MASK:
             if not self.button_down:
-                logger.info("Button pressed")
                 self.button_down = True
+                self.on_pressed()
         elif self.button_down:
-            logger.info("Button released")
             self.button_down = False
+            self.on_released()
     def get_mass(self, data):
         return {
             'top_right':    self.calc_mass(b2i(data[0:2]), TOP_RIGHT),
@@ -123,12 +120,10 @@ class Wiiboard:
                 continue
             input_type = data[1]
             if input_type == INPUT_STATUS:
-                self.reporting() # Must set the reporting type after every status report
-                self.battery = b2i(data[7:9]) / BATTERY_MAX # 0x12: on, 0x02: off/blink
+                self.battery = b2i(data[7:9]) / BATTERY_MAX
+                # 0x12: on, 0x02: off/blink
                 self.light_state = b2i(data[4]) & LED1_MASK == LED1_MASK
-                logger.info("Status: battery: %.2f%% light: %s", self.battery*100.0,
-                            'on' if self.light_state else 'off')
-                self.light(1)
+                self.on_status()
             elif input_type == INPUT_READ_DATA:
                 logger.debug("Got calibration data")
                 if self.calibration_requested:
@@ -139,15 +134,25 @@ class Wiiboard:
                         self.calibration = [cal(data[0:8]), cal(data[8:16]), [10000]*4]
                     elif length < 16: # Second packet of calibration data
                         self.calibration[2] = cal(data[0:8])
-                        logger.info("Board calibrated: %s", str(self.calibration))
                         self.calibration_requested = False
-                        self.light(1)
+                        self.on_calibrated()
             elif input_type == EXTENSION_8BYTES:
                 self.button_down = self.check_button(b2i(data[2:4]))
-                self.samples.append(self.get_mass(data[4:12]))
-        time.sleep(0.01)
-    def spin(self):
-        self.thread.join()
+                self.on_mass(self.get_mass(data[4:12]))
+    def on_status(self):
+        self.reporting() # Must set the reporting type after every status report
+        logger.info("Status: battery: %.2f%% light: %s", self.battery*100.0,
+                    'on' if self.light_state else 'off')
+        self.light(1)
+    def on_calibrated(self):
+        logger.info("Board calibrated: %s", str(self.calibration))
+        self.light(1)
+    def on_mass(self, mass):
+        logger.debug("New mass data: %s", str(mass))
+    def on_pressed(self):
+        logger.info("Button pressed")
+    def on_released(self):
+        logger.info("Button released")
     def close(self):
         self.running = False
         if self.receivesocket: self.receivesocket.close()
@@ -161,6 +166,40 @@ class Wiiboard:
         self.close()
         return not exc_type # re-raise exception if any
 
+class WiiboardThreaded(Wiiboard):
+    def __init__(self, address=None):
+        Wiiboard.__init__(self, address)
+        self.thread = threading.Thread(target=self.loop)
+    def connect(self, address):
+        Wiiboard.connect(self, address)
+        self.thread.start()
+    def spin(self):
+        while self.thread.is_alive():
+            self.thread.join(1)
+
+class WiiboardSampling(Wiiboard):
+    def __init__(self, address=None, nsamples=N_SAMPLES):
+        Wiiboard.__init__(self, address)
+        self.samples = collections.deque([], nsamples)
+    def on_mass(self, mass):
+        self.samples.append(mass)
+        self.on_sample()
+    def on_sample(self):
+        time.sleep(0.01)
+
+# client class where we can re-define callbacks
+class WiiboardPrint(WiiboardSampling):
+    def on_sample(self):
+        if len(self.samples) == N_SAMPLES:
+            # Copy deque content by using list() copy constructor
+            #   to avoid: RuntimeError: deque mutated during iteration
+            samples = [sum(sample.values()) for sample in list(self.samples)]
+            print("%.3f %.3f"%(time.time(), sum(samples) / len(samples)))
+            self.samples.clear()
+            self.status() # Stop the board from publishing mass data
+            self.light(0)
+            time.sleep(1)
+
 if __name__ == '__main__':
     import sys
     if len(sys.argv) > 1:
@@ -171,15 +210,5 @@ if __name__ == '__main__':
         if not wiiboards:
             raise Exception("Press the red sync button on the board")
         address = wiiboards[0]
-    try:
-        wbo = Wiiboard(address)
-        while wbo.running:
-            if len(wbo.samples) > N_SAMPLES / 2:
-                samples = [sum(sample.values()) for sample in wbo.samples]
-                print("%.3f %.3f"%(time.time(), sum(samples) / len(samples)))
-                wbo.samples.clear()
-                wbo.status() # Stop the board from publishing mass data
-                wbo.light(0)
-            time.sleep(2)
-    finally:
-        wbo.close()
+    with WiiboardPrint(address) as wiiprint:
+        wiiprint.loop()
