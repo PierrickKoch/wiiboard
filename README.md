@@ -99,3 +99,31 @@ class WiiboardThreaded(Wiiboard):
         while self.thread.is_alive():
             self.thread.join(1)
 ```
+
+Center of mass
+--------------
+
+```python
+def on_mass(self, mass):
+    comx = 1.0
+    comy = 1.0
+    try:
+        total_right  = mass['top_right']   + mass['bottom_right']
+        total_left   = mass['top_left']    + mass['bottom_left']
+        comx = total_right / total_left
+        if comx > 1:
+            comx = 1 - total_right / total_left
+        else:
+            comx -= 1
+        total_bottom = mass['bottom_left'] + mass['bottom_right']
+        total_top    = mass['top_left']    + mass['top_right']
+        comy = total_bottom / total_top
+        if comy > 1:
+            comy = 1 - total_top / total_bottom
+        else:
+            comy -= 1
+    except:
+        pass
+    print("Center of mass: %s"%str({'x': comx, 'y': comy}))
+    # plot(x,y) using pygame or any other GUI
+```
