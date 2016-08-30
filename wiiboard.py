@@ -139,7 +139,7 @@ class Wiiboard:
                         self.calibration_requested = False
                         self.on_calibrated()
             elif input_type == EXTENSION_8BYTES:
-                self.button_down = self.check_button(b2i(data[2:4]))
+                self.check_button(b2i(data[2:4]))
                 self.on_mass(self.get_mass(data[4:12]))
     def on_status(self):
         self.reporting() # Must set the reporting type after every status report
