@@ -94,10 +94,12 @@ class Wiiboard:
             return 0.0
         elif raw < self.calibration[1][pos]:
             return 17 * ((raw - self.calibration[0][pos]) /
-                         float((self.calibration[1][pos] - self.calibration[0][pos])))
+                         float((self.calibration[1][pos] -
+                                self.calibration[0][pos])))
         else: # if raw >= self.calibration[1][pos]:
             return 17 + 17 * ((raw - self.calibration[1][pos]) /
-                              float((self.calibration[2][pos] - self.calibration[1][pos])))
+                              float((self.calibration[2][pos] -
+                                     self.calibration[1][pos])))
     def check_button(self, state):
         if state == BUTTON_DOWN_MASK:
             if not self.button_down:
