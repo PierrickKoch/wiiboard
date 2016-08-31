@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 """ Wii Fit Balance Board (WBB) in python
 
-usage: wiiboard.py [address] 2> wiiboard.log > wiiboard.txt
+usage: wiiboard.py [-d] [address] 2> wiiboard.log > wiiboard.txt
 tip: use `hcitool scan` to get a list of devices addresses
 
 You only need to install `python-bluez` or `python-bluetooth` package.
@@ -199,6 +199,9 @@ class WiiboardPrint(WiiboardSampling):
 
 if __name__ == '__main__':
     import sys
+    if '-d' in sys.argv:
+        logger.setLevel(logging.DEBUG)
+        sys.argv.remove('-d')
     if len(sys.argv) > 1:
         address = sys.argv[1]
     else:
