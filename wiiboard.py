@@ -69,11 +69,11 @@ class Wiiboard:
         self.controlsocket.connect((address, 0x11))
         self.receivesocket.connect((address, 0x13))
         logger.debug("Sending mass calibration request")
-        self.send(COMMAND_READ_REGISTER, "\x04\xA4\x00\x24\x00\x18")
+        self.send(COMMAND_READ_REGISTER, b"\x04\xA4\x00\x24\x00\x18")
         self.calibration_requested = True
         logger.info("Wait for calibration")
         logger.debug("Connect to the balance extension, to read mass data")
-        self.send(COMMAND_REGISTER, "\x04\xA4\x00\x40\x00")
+        self.send(COMMAND_REGISTER, b"\x04\xA4\x00\x40\x00")
         logger.debug("Request status")
         self.status()
         self.light(0)
