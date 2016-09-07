@@ -34,6 +34,7 @@ Changes from Nedim's version
 Since then few other projects using Nedim's code:
 * https://www.stavros.io/posts/your-weight-online/
 * https://github.com/initialstate/beerfridge
+* http://aelveborn.com/Wii-Scale/
 
 Other wiimote interface / driver:
 * https://github.com/abstrakraft/cwiid
@@ -46,7 +47,9 @@ Kernel bluetooth code (deal with the pairing key since 2012-09-21):
 TODO
 ----
 
-play with DBus for paired bluetooth input device:
+Pressing the red sync button under the battery cover at each start-up is not
+convinient. We should find a way with DBus to get a socket for paired bluetooth
+input device, in which case one would only have to press the front power button.
 
 ```python
 BLUEZ_VERSION = 5
