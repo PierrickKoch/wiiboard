@@ -1,0 +1,183 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Wiiboard by pierriko</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/github-light.css">
+    <meta name="viewport" content="width=device-width">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Wiiboard</h1>
+        <p>Wii Fit Balance Board</p>
+
+        <p class="view"><a href="https://github.com/pierriko/wiiboard">View the Project on GitHub <small>pierriko/wiiboard</small></a></p>
+
+
+        <ul>
+          <li><a href="https://github.com/pierriko/wiiboard/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/pierriko/wiiboard/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/pierriko/wiiboard">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h1>
+<a id="wii-fit-balance-board-wbb" class="anchor" href="#wii-fit-balance-board-wbb" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Wii Fit Balance Board (WBB)</h1>
+
+<p><em>in python</em></p>
+
+<pre><code>usage: wiiboard.py [address] 2&gt; wiiboard.log &gt; wiiboard.txt
+tip: use `hcitool scan` to get a list of devices addresses
+</code></pre>
+
+<p>You only need to install <code>python-bluez</code> or <code>python-bluetooth</code> package.</p>
+
+<p>Original version from Nedim Jackman in 2008 [based? on "wiibalancepc"]:</p>
+
+<ul>
+<li><a href="https://code.google.com/archive/p/wiiboard-simple/">https://code.google.com/archive/p/wiiboard-simple/</a></li>
+<li><a href="http://trackingbalance.blogspot.fr/2008/08/small-milestone.html">http://trackingbalance.blogspot.fr/2008/08/small-milestone.html</a></li>
+</ul>
+
+<h2>
+<a id="note-to-developers" class="anchor" href="#note-to-developers" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Note to developers</h2>
+
+<p>wiiboard_simple_src_1.0.0.zip/WiiboardSimple/src/edu/unsw/cse/wiiboard/WiiBoard.java
+The Wii Balance Board is very similar in most hardware properties of the wiimote.
+The force sensing component is treated as an extension to a wiimote.
+Most of the implementation details are sourced from the wiibrew project:</p>
+
+<ul>
+<li><a href="http://wiibrew.org/wiki/Wii_Balance_Board">http://wiibrew.org/wiki/Wii_Balance_Board</a></li>
+<li><a href="http://web.archive.org/http://www.wiili.org/index.php/Wiimote">http://web.archive.org/http://www.wiili.org/index.php/Wiimote</a></li>
+</ul>
+
+<h2>
+<a id="changes-from-nedims-version" class="anchor" href="#changes-from-nedims-version" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Changes from Nedim's version</h2>
+
+<ul>
+<li>fix Wiiboard.calcMass where <code>raw == self.calibration[1][pos]</code> would return 0.0</li>
+<li>add INPUT_STATUS code to get battery level and light status</li>
+<li>store constants in byte to avoid unnecessary conversion</li>
+<li>skip device discovery when passing an address in argument</li>
+<li>add logging (to stderr)</li>
+</ul>
+
+<p>Since then few other projects using Nedim's code:</p>
+
+<ul>
+<li><a href="https://www.stavros.io/posts/your-weight-online/">https://www.stavros.io/posts/your-weight-online/</a></li>
+<li><a href="https://github.com/initialstate/beerfridge">https://github.com/initialstate/beerfridge</a></li>
+<li><a href="http://aelveborn.com/Wii-Scale/">http://aelveborn.com/Wii-Scale/</a></li>
+</ul>
+
+<p>Other wiimote interface / driver:</p>
+
+<ul>
+<li><a href="https://github.com/abstrakraft/cwiid">https://github.com/abstrakraft/cwiid</a></li>
+<li><a href="https://github.com/dvdhrm/xwiimote">https://github.com/dvdhrm/xwiimote</a></li>
+</ul>
+
+<p>Kernel bluetooth code (deal with the pairing key since 2012-09-21):</p>
+
+<ul>
+<li><a href="https://git.kernel.org/cgit/bluetooth/bluez.git/tree/plugins/wiimote.c">https://git.kernel.org/cgit/bluetooth/bluez.git/tree/plugins/wiimote.c</a></li>
+</ul>
+
+<h2>
+<a id="todo" class="anchor" href="#todo" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TODO</h2>
+
+<p>Pressing the red sync button under the battery cover at each start-up is not
+convinient. We should find a way with DBus to get a socket for paired bluetooth
+input device, in which case one would only have to press the front power button.</p>
+
+<div class="highlight highlight-source-python"><pre><span class="pl-c1">BLUEZ_VERSION</span> <span class="pl-k">=</span> <span class="pl-c1">5</span>
+<span class="pl-k">try</span>: <span class="pl-c"># disconnect paired device with BlueZ API v5+</span>
+    logger.debug(<span class="pl-s"><span class="pl-pds">"</span>bluez/test/test-device disconnect <span class="pl-c1">%s</span><span class="pl-pds">"</span></span>, address)
+    <span class="pl-k">import</span> dbus
+    bus <span class="pl-k">=</span> dbus.SystemBus()
+    obj <span class="pl-k">=</span> bus.get_object(<span class="pl-s"><span class="pl-pds">"</span>org.bluez<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>/<span class="pl-pds">"</span></span>)
+    <span class="pl-k">if</span> <span class="pl-c1">BLUEZ_VERSION</span> <span class="pl-k">&gt;=</span> <span class="pl-c1">5</span>:
+        manager <span class="pl-k">=</span> dbus.Interface(obj, <span class="pl-s"><span class="pl-pds">"</span>org.freedesktop.DBus.ObjectManager<span class="pl-pds">"</span></span>)
+        objects <span class="pl-k">=</span> manager.GetManagedObjects()
+        <span class="pl-k">for</span> path, ifaces <span class="pl-k">in</span> objects.iteritems():
+            device <span class="pl-k">=</span> ifaces.get(<span class="pl-s"><span class="pl-pds">"</span>org.bluez.Device1<span class="pl-pds">"</span></span>)
+            <span class="pl-k">if</span> device <span class="pl-k">is</span> <span class="pl-k">not</span> <span class="pl-c1">None</span> <span class="pl-k">and</span> device.get(<span class="pl-s"><span class="pl-pds">"</span>Address<span class="pl-pds">"</span></span>) <span class="pl-k">==</span> address:
+                obj <span class="pl-k">=</span> bus.get_object(<span class="pl-s"><span class="pl-pds">"</span>org.bluez<span class="pl-pds">"</span></span>, path)
+                dev <span class="pl-k">=</span> dbus.Interface(obj, <span class="pl-s"><span class="pl-pds">"</span>org.bluez.Device1<span class="pl-pds">"</span></span>)
+                <span class="pl-c"># <span class="pl-k">TODO</span> check how can we get socket out of that</span>
+                <span class="pl-c"># see bluez/test/test-profile</span>
+                logger.debug(<span class="pl-s"><span class="pl-pds">"</span>  Disconnect <span class="pl-c1">%s</span><span class="pl-pds">"</span></span>, path)
+                dev.Disconnect()
+    <span class="pl-k">else</span>:
+        manager <span class="pl-k">=</span> dbus.Interface(obj, <span class="pl-s"><span class="pl-pds">"</span>org.bluez.Manager<span class="pl-pds">"</span></span>)
+        adapter_path <span class="pl-k">=</span> manager.DefaultAdapter()
+        obj <span class="pl-k">=</span> bus.get_object(<span class="pl-s"><span class="pl-pds">"</span>org.bluez<span class="pl-pds">"</span></span>, adapter_path)
+        adapter <span class="pl-k">=</span> dbus.Interface(obj, <span class="pl-s"><span class="pl-pds">"</span>org.bluez.Adapter<span class="pl-pds">"</span></span>)
+        device_path <span class="pl-k">=</span> adapter.FindDevice(address)
+        obj <span class="pl-k">=</span> bus.get_object(<span class="pl-s"><span class="pl-pds">"</span>org.bluez<span class="pl-pds">"</span></span>, device_path)
+        device <span class="pl-k">=</span> dbus.Interface(obj, <span class="pl-s"><span class="pl-pds">"</span>org.bluez.Device<span class="pl-pds">"</span></span>) <span class="pl-c"># or Input</span>
+        device.Disconnect()
+<span class="pl-k">except</span> <span class="pl-c1">Exception</span> <span class="pl-k">as</span> err:
+    logger.warning(<span class="pl-s"><span class="pl-pds">"</span>dbus failed: <span class="pl-c1">%s</span><span class="pl-pds">"</span></span>, <span class="pl-c1">str</span>(err))</pre></div>
+
+<h2>
+<a id="threading" class="anchor" href="#threading" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Threading</h2>
+
+<p><em>for threaded version use something like</em></p>
+
+<div class="highlight highlight-source-python"><pre><span class="pl-k">import</span> threading
+
+<span class="pl-k">class</span> <span class="pl-en">WiiboardThreaded</span>(<span class="pl-e">Wiiboard</span>):
+    <span class="pl-k">def</span> <span class="pl-c1">__init__</span>(<span class="pl-smi"><span class="pl-smi">self</span></span>, <span class="pl-smi">address</span><span class="pl-k">=</span><span class="pl-c1">None</span>):
+        <span class="pl-v">self</span>.thread <span class="pl-k">=</span> threading.Thread(<span class="pl-v">target</span><span class="pl-k">=</span><span class="pl-v">self</span>.loop)
+        Wiiboard.<span class="pl-c1">__init__</span>(<span class="pl-v">self</span>, address)
+    <span class="pl-k">def</span> <span class="pl-en">connect</span>(<span class="pl-smi"><span class="pl-smi">self</span></span>, <span class="pl-smi">address</span>):
+        Wiiboard.connect(<span class="pl-v">self</span>, address)
+        <span class="pl-v">self</span>.thread.start()
+    <span class="pl-k">def</span> <span class="pl-en">spin</span>(<span class="pl-smi"><span class="pl-smi">self</span></span>):
+        <span class="pl-k">while</span> <span class="pl-v">self</span>.thread.is_alive():
+            <span class="pl-v">self</span>.thread.join(<span class="pl-c1">1</span>)</pre></div>
+
+<h2>
+<a id="center-of-mass" class="anchor" href="#center-of-mass" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Center of mass</h2>
+
+<div class="highlight highlight-source-python"><pre><span class="pl-k">def</span> <span class="pl-en">on_mass</span>(<span class="pl-smi"><span class="pl-smi">self</span></span>, <span class="pl-smi">mass</span>):
+    comx <span class="pl-k">=</span> <span class="pl-c1">1.0</span>
+    comy <span class="pl-k">=</span> <span class="pl-c1">1.0</span>
+    <span class="pl-k">try</span>:
+        total_right  <span class="pl-k">=</span> mass[<span class="pl-s"><span class="pl-pds">'</span>top_right<span class="pl-pds">'</span></span>]   <span class="pl-k">+</span> mass[<span class="pl-s"><span class="pl-pds">'</span>bottom_right<span class="pl-pds">'</span></span>]
+        total_left   <span class="pl-k">=</span> mass[<span class="pl-s"><span class="pl-pds">'</span>top_left<span class="pl-pds">'</span></span>]    <span class="pl-k">+</span> mass[<span class="pl-s"><span class="pl-pds">'</span>bottom_left<span class="pl-pds">'</span></span>]
+        comx <span class="pl-k">=</span> total_right <span class="pl-k">/</span> total_left
+        <span class="pl-k">if</span> comx <span class="pl-k">&gt;</span> <span class="pl-c1">1</span>:
+            comx <span class="pl-k">=</span> <span class="pl-c1">1</span> <span class="pl-k">-</span> total_right <span class="pl-k">/</span> total_left
+        <span class="pl-k">else</span>:
+            comx <span class="pl-k">-=</span> <span class="pl-c1">1</span>
+        total_bottom <span class="pl-k">=</span> mass[<span class="pl-s"><span class="pl-pds">'</span>bottom_left<span class="pl-pds">'</span></span>] <span class="pl-k">+</span> mass[<span class="pl-s"><span class="pl-pds">'</span>bottom_right<span class="pl-pds">'</span></span>]
+        total_top    <span class="pl-k">=</span> mass[<span class="pl-s"><span class="pl-pds">'</span>top_left<span class="pl-pds">'</span></span>]    <span class="pl-k">+</span> mass[<span class="pl-s"><span class="pl-pds">'</span>top_right<span class="pl-pds">'</span></span>]
+        comy <span class="pl-k">=</span> total_bottom <span class="pl-k">/</span> total_top
+        <span class="pl-k">if</span> comy <span class="pl-k">&gt;</span> <span class="pl-c1">1</span>:
+            comy <span class="pl-k">=</span> <span class="pl-c1">1</span> <span class="pl-k">-</span> total_top <span class="pl-k">/</span> total_bottom
+        <span class="pl-k">else</span>:
+            comy <span class="pl-k">-=</span> <span class="pl-c1">1</span>
+    <span class="pl-k">except</span>:
+        <span class="pl-k">pass</span>
+    <span class="pl-c1">print</span>(<span class="pl-s"><span class="pl-pds">"</span>Center of mass: <span class="pl-c1">%s</span><span class="pl-pds">"</span></span><span class="pl-k">%</span><span class="pl-c1">str</span>({<span class="pl-s"><span class="pl-pds">'</span>x<span class="pl-pds">'</span></span>: comx, <span class="pl-s"><span class="pl-pds">'</span>y<span class="pl-pds">'</span></span>: comy}))
+    <span class="pl-c"># plot(x,y) using pygame or any other GUI</span></pre></div>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/pierriko">pierriko</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+    
+  </body>
+</html>
